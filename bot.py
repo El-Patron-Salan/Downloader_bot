@@ -1,6 +1,7 @@
 import discord
 import os
 import urllib.request, urllib.parse
+from dotenv import load_dotenv
 from datetime import date
 
 #Store current date in variable
@@ -93,6 +94,6 @@ async def on_message(mssg):
     else:
         return
 
-
-client.run("ODkzMjYzNTY2OTE0ODY3MjEw.YVY6hg.5zhDpOP_-IwSHo0JUC5v7IIrpiA")
+load_dotenv()
+client.run(os.getenv("DISCORD_TOKEN"))
         
