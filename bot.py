@@ -1,6 +1,6 @@
 import discord
 import os
-import urllib.request
+import urllib.request, urllib.parse
 from datetime import date
 
 #Store current date in variable
@@ -11,7 +11,6 @@ today_date = current_date.strftime("%d-%m-%Y")
 URL_TO = "http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf"
 file_name = "Schedule_" + today_date + ".pdf"
 path = "/mnt/For_linux_use/Discord_bots/Downloader_bot/" + file_name
-
 
 client = discord.Client()
 
@@ -30,8 +29,6 @@ def last_modified(url, status):
     else:
         return "Currently page is down"
 
-
-
 #Check if header has been updated based on current date
 def verify(response_page):
     if today_date_header in response_page:
@@ -45,6 +42,8 @@ def download(url):
     file.write(response.read())
     file.close()
 
+
+
 #Login
 @client.event
 async def on_ready(self):
@@ -52,22 +51,47 @@ async def on_ready(self):
 
 #Execute command
 @client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-    if message.content.startswith('-check'):
+async def on_message(mssg):
+    # match mssg.content.startswith():
+
+    #     case '-check':
+    #         status_page = check_status(URL_TO)
+    #         header_get = last_modified(URL_TO, status_page)
+    #         check_if_updated = verify(header_get)
+    #         if check_if_updated == True:
+    #             download(URL_TO)
+    #             await mssg.channel.send(file=discord.File(path))
+    #         else:
+    #             await mssg.channel.send("No updates")
+
+    #     case '-show':
+    #         download(URL_TO)
+    #         await mssg.channel.send(file=discord.File(path))
+
+    #     case _:
+    #         return
+    
+
+    if mssg.content.startswith('-check'):
+
         status_page = check_status(URL_TO)
         header_get = last_modified(URL_TO, status_page)
         check_if_updated = verify(header_get)
+
         if check_if_updated == True:
             download(URL_TO)
-            await message.channel.send(file=discord.File(path))
+            await mssg.channel.send(file=discord.File(path))
         else:
-            await message.channel.send("No updates")
+            await mssg.channel.send("No updates")
         
-    elif message.content.startswith('-show'):
+
+    elif mssg.content.startswith('-show'):
         download(URL_TO)
-        await message.channel.send(file=discord.File(path))
+        await mssg.channel.send(file=discord.File(path))
+    
+
+    else:
+        return
 
 
 client.run("ODkzMjYzNTY2OTE0ODY3MjEw.YVY6hg.5zhDpOP_-IwSHo0JUC5v7IIrpiA")
