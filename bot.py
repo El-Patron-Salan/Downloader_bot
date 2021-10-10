@@ -4,6 +4,7 @@ import urllib.request, urllib.parse
 from dotenv import load_dotenv
 from datetime import date
 
+
 #Store current date in variable
 current_date = date.today()
 today_date_header = current_date.strftime("%d %b %Y") #header syntax
@@ -47,8 +48,9 @@ def download(url):
 
 #Login
 @client.event
-async def on_ready(self):
-    print('Logged on as {0}!'.format(self.user))
+async def on_ready():
+    print('Logged on as {0}!'.format(client))
+
 
 #Execute command
 @client.event
@@ -66,7 +68,7 @@ async def on_message(mssg):
     #             await mssg.channel.send("No updates")
 
     #     case '-show':
-    #         download(URL_TO)
+    #         download(URL_TO)self
     #         await mssg.channel.send(file=discord.File(path))
 
     #     case _:
