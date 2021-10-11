@@ -54,8 +54,6 @@ def download(url):
 async def remove_file(given_path):
     os.remove(given_path)
 
-def pp():
-    print("It works")
 #@bot.command()
 #Login
 @client.event
@@ -76,7 +74,6 @@ check_if_updated = schedule.every().day.at("00:50").do(verify, header_get)
 @client.event
 async def on_message(mssg):
 
-    lol = schedule.every(4).seconds.do(pp)
     if check_if_updated == True:
             download(URL_TO)
             await mssg.schedule_channel_id.send(file=discord.File(path))
@@ -101,7 +98,7 @@ async def on_message(mssg):
         await mssg.channel.send(header_get)
     
     else:
-        return lol
+        return
 
 
 
