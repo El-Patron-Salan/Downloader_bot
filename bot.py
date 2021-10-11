@@ -46,6 +46,9 @@ def download(url):
     file.write(response.read())
     file.close()
 
+async def remove_file(given_path):
+    os.remove(given_path)
+
 #@bot.command()
 #Login
 @client.event
@@ -55,19 +58,17 @@ async def on_ready():
 
 status_page = check_status(URL_TO)
 header_get = last_modified(URL_TO, status_page)
-
+check_if_updated = verify(header_get)
 
 #Execute command
 @client.event
 async def on_message(mssg):
     
     if mssg.content.startswith('-check'):
-
-        check_if_updated = verify(header_get)
-
         if check_if_updated == True:
             download(URL_TO)
             await mssg.channel.send(file=discord.File(path))
+            await remove_file(path)
         else:
             await mssg.channel.send("No updates")
         
@@ -75,6 +76,8 @@ async def on_message(mssg):
     elif mssg.content.startswith('-show'):
         download(URL_TO)
         await mssg.channel.send(file=discord.File(path))
+        await remove_file(path)
+
 
     elif mssg.content.startswith('-last'):
         await mssg.channel.send(header_get)
