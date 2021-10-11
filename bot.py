@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
+
 import os
+import schedule
 import urllib.request, urllib.parse
 from dotenv import load_dotenv
 from datetime import date
