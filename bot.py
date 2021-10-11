@@ -6,7 +6,11 @@ import schedule
 import urllib.request, urllib.parse
 from dotenv import load_dotenv
 from datetime import date
+import time
 
+
+client = discord.Client()
+bot_args = commands.Bot(command_prefix='-')
 
 #Store current date in variable
 current_date = date.today()
@@ -16,9 +20,8 @@ today_date = current_date.strftime("%d-%m-%Y")
 URL_TO = "http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf"
 file_name = "Schedule_" + today_date + ".pdf"
 path = "/mnt/For_linux_use/Discord_bots/Downloader_bot/" + file_name
+schedule_channel_id = client.get_channel(897232495244881961)
 
-client = discord.Client()
-bot_args = commands.Bot(command_prefix='-')
 
 #Check if website is online
 def check_status(url):
@@ -51,22 +54,35 @@ def download(url):
 async def remove_file(given_path):
     os.remove(given_path)
 
+def pp():
+    print("It works")
 #@bot.command()
 #Login
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client))
 
+#status_page = check_status(URL_TO)
+#header_get = last_modified(URL_TO, status_page)
+#check_if_updated = verify(header_get)
 
-status_page = check_status(URL_TO)
-header_get = last_modified(URL_TO, status_page)
-check_if_updated = verify(header_get)
+status_page = schedule.every().day.at("00:50").do(check_status, URL_TO)
+header_get = schedule.every().day.at("00:50").do(last_modified, URL_TO, status_page)
+check_if_updated = schedule.every().day.at("00:50").do(verify, header_get)
+
+
 
 #Execute command
 @client.event
 async def on_message(mssg):
-    
-    if mssg.content.startswith('-check'):
+
+    lol = schedule.every(4).seconds.do(pp)
+    if check_if_updated == True:
+            download(URL_TO)
+            await mssg.schedule_channel_id.send(file=discord.File(path))
+            await remove_file(path)
+
+    elif mssg.content.startswith('-check'): #manual verification
         if check_if_updated == True:
             download(URL_TO)
             await mssg.channel.send(file=discord.File(path))
@@ -84,10 +100,14 @@ async def on_message(mssg):
     elif mssg.content.startswith('-last'):
         await mssg.channel.send(header_get)
     
-
     else:
-        return
+        return lol
+
+
 
 load_dotenv()
 client.run(os.getenv("DISCORD_TOKEN"))
-        
+
+while 1:
+    schedule.run_pending()
+    time.sleep(1)
