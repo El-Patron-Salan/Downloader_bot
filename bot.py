@@ -16,6 +16,7 @@ file_name = "Schedule_" + today_date + ".pdf"
 path = "/mnt/For_linux_use/Discord_bots/Downloader_bot/" + file_name
 
 client = discord.Client()
+bot_args = commands.Bot(command_prefix='-')
 
 #Check if website is online
 def check_status(url):
@@ -30,7 +31,7 @@ def last_modified(url, status):
         response = urllib.request.urlopen(url)
         return response.headers['Last-Modified']
     else:
-        return "Currently page is down"
+        return "Could not find page"
 
 #Check if header has been updated based on current date
 def verify(response_page):
@@ -45,12 +46,15 @@ def download(url):
     file.write(response.read())
     file.close()
 
-
-
+#@bot.command()
 #Login
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client))
+
+
+status_page = check_status(URL_TO)
+header_get = last_modified(URL_TO, status_page)
 
 
 #Execute command
@@ -59,8 +63,6 @@ async def on_message(mssg):
     
     if mssg.content.startswith('-check'):
 
-        status_page = check_status(URL_TO)
-        header_get = last_modified(URL_TO, status_page)
         check_if_updated = verify(header_get)
 
         if check_if_updated == True:
@@ -73,6 +75,9 @@ async def on_message(mssg):
     elif mssg.content.startswith('-show'):
         download(URL_TO)
         await mssg.channel.send(file=discord.File(path))
+
+    elif mssg.content.startswith('-last'):
+        await mssg.channel.send(header_get)
     
 
     else:
