@@ -1,4 +1,5 @@
 import discord
+from discord.ext import commands
 import os
 import urllib.request, urllib.parse
 from dotenv import load_dotenv
@@ -55,26 +56,7 @@ async def on_ready():
 #Execute command
 @client.event
 async def on_message(mssg):
-    # match mssg.content.startswith():
-
-    #     case '-check':
-    #         status_page = check_status(URL_TO)
-    #         header_get = last_modified(URL_TO, status_page)
-    #         check_if_updated = verify(header_get)
-    #         if check_if_updated == True:
-    #             download(URL_TO)
-    #             await mssg.channel.send(file=discord.File(path))
-    #         else:
-    #             await mssg.channel.send("No updates")
-
-    #     case '-show':
-    #         download(URL_TO)self
-    #         await mssg.channel.send(file=discord.File(path))
-
-    #     case _:
-    #         return
     
-
     if mssg.content.startswith('-check'):
 
         status_page = check_status(URL_TO)
