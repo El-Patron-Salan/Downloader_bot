@@ -1,8 +1,7 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import os
-import schedule
 import urllib.request, urllib.parse
 from dotenv import load_dotenv
 from datetime import date
@@ -16,6 +15,7 @@ today_date = current_date.strftime("%d-%m-%Y")
 URL_TO = "http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf"
 file_name = "Schedule_" + today_date + ".pdf"
 path = "/mnt/For_linux_use/Discord_bots/Downloader_bot/" + file_name
+
 
 client = discord.Client()
 bot_args = commands.Bot(command_prefix='-')
@@ -51,16 +51,19 @@ def download(url):
 async def remove_file(given_path):
     os.remove(given_path)
 
-#@bot.command()
+
+status_page = check_status(URL_TO)
+header_get = last_modified(URL_TO, status_page)
+check_if_updated = verify(header_get)
+
+
+@tasks.loop(hours=12)
+
 #Login
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client))
 
-
-status_page = check_status(URL_TO)
-header_get = last_modified(URL_TO, status_page)
-check_if_updated = verify(header_get)
 
 #Execute command
 @client.event
