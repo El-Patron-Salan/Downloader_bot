@@ -6,6 +6,9 @@ import urllib.request, urllib.parse
 from dotenv import load_dotenv
 from datetime import date
 
+#Init
+client = discord.Client()
+bot_args = commands.Bot(command_prefix='-')
 
 #Store current date in variable
 current_date = date.today()
@@ -13,12 +16,10 @@ today_date_header = current_date.strftime("%d %b %Y") #header syntax
 today_date = current_date.strftime("%d-%m-%Y")
 
 URL_TO = "http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf"
+channel_id = client.get_channel(897232495244881961) #Schedule channel
 file_name = "Schedule_" + today_date + ".pdf"
-path = "/mnt/For_linux_use/Discord_bots/Downloader_bot/" + file_name
+path = file_name
 
-
-client = discord.Client()
-bot_args = commands.Bot(command_prefix='-')
 
 #Check if website is online
 def check_status(url):
@@ -56,8 +57,19 @@ status_page = check_status(URL_TO)
 header_get = last_modified(URL_TO, status_page)
 check_if_updated = verify(header_get)
 
-
+#Task that will at least once run every day
 @tasks.loop(hours=12)
+async def run_daily_verify():
+    if check_if_updated == True:
+        download(URL_TO)
+        try:
+            await channel_id.send(file=discord.File(path))
+            await remove_file(path)
+        except Exception as e:
+            print("Error occured: " + e)
+    else:
+        print("No update")
+
 
 #Login
 @client.event
@@ -69,6 +81,8 @@ async def on_ready():
 @client.event
 async def on_message(mssg):
     
+    run_daily_verify.start()
+
     if mssg.content.startswith('-check'):
         if check_if_updated == True:
             download(URL_TO)
