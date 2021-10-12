@@ -10,7 +10,7 @@ from datetime import date
 client = discord.Client()
 bot_args = commands.Bot(command_prefix='-')
 
-to_comm = "ss"
+
 #Store current date in variable
 current_date = date.today()
 today_date_header = current_date.strftime("%d %b %Y") #header syntax
@@ -58,6 +58,7 @@ status_page = check_status(URL_TO)
 header_get = last_modified(URL_TO, status_page)
 check_if_updated = verify(header_get)
 
+
 #Task that will at least once run every day
 @tasks.loop(hours=12)
 async def run_daily_verify():
@@ -70,13 +71,11 @@ async def run_daily_verify():
             print("Error occured: " + e)
     else:
         print("No update")
-
-
+   
 #Login
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client))
-
 
 #Execute command
 @client.event
@@ -84,7 +83,7 @@ async def on_message(mssg):
     
     run_daily_verify.start()
 
-    if mssg.content.startswith('-check'):
+    if mssg.content.startswith('-check'): #manual verification
         if check_if_updated == True:
             download(URL_TO)
             await mssg.channel.send(file=discord.File(path))
@@ -102,9 +101,10 @@ async def on_message(mssg):
     elif mssg.content.startswith('-last'):
         await mssg.channel.send("Schedule last updated in: " + header_get)
     
-
     else:
         return "Error occured"
 
+
 load_dotenv()
+
 client.run(os.getenv("DISCORD_TOKEN"))
