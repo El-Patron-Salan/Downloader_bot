@@ -10,6 +10,7 @@ from datetime import date
 client = discord.Client()
 bot_args = commands.Bot(command_prefix='-')
 
+to_comm = "ss"
 #Store current date in variable
 current_date = date.today()
 today_date_header = current_date.strftime("%d %b %Y") #header syntax
