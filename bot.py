@@ -2,11 +2,9 @@ import discord
 from discord.ext import commands
 
 import os
-import schedule
 import urllib.request, urllib.parse
 from dotenv import load_dotenv
 from datetime import date
-import time
 
 
 client = discord.Client()
@@ -54,32 +52,20 @@ def download(url):
 async def remove_file(given_path):
     os.remove(given_path)
 
-#@bot.command()
 #Login
 @client.event
 async def on_ready():
     print('Logged on as {0}!'.format(client))
 
-#status_page = check_status(URL_TO)
-#header_get = last_modified(URL_TO, status_page)
-#check_if_updated = verify(header_get)
-
-status_page = schedule.every().day.at("00:50").do(check_status, URL_TO)
-header_get = schedule.every().day.at("00:50").do(last_modified, URL_TO, status_page)
-check_if_updated = schedule.every().day.at("00:50").do(verify, header_get)
-
-
+status_page = check_status(URL_TO)
+header_get = last_modified(URL_TO, status_page)
+check_if_updated = verify(header_get)
 
 #Execute command
 @client.event
 async def on_message(mssg):
 
-    if check_if_updated == True:
-            download(URL_TO)
-            await mssg.schedule_channel_id.send(file=discord.File(path))
-            await remove_file(path)
-
-    elif mssg.content.startswith('-check'): #manual verification
+    if mssg.content.startswith('-check'): #manual verification
         if check_if_updated == True:
             download(URL_TO)
             await mssg.channel.send(file=discord.File(path))
@@ -104,7 +90,3 @@ async def on_message(mssg):
 
 load_dotenv()
 client.run(os.getenv("DISCORD_TOKEN"))
-
-while 1:
-    schedule.run_pending()
-    time.sleep(1)
