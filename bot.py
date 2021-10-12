@@ -20,7 +20,7 @@ file_name = "Schedule_" + today_date + ".pdf"
 path = "/mnt/For_linux_use/Discord_bots/Downloader_bot/" + file_name
 schedule_channel_id = client.get_channel(897232495244881961)
 
-
+comm = "Just to commit it"
 #Check if website is online
 def check_status(url):
     if urllib.request.urlopen(url).getcode() == 200:
