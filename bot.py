@@ -91,7 +91,7 @@ async def on_message(mssg):
             await remove_file(path)
         else:
             await mssg.channel.send("No updates")
-        
+    
 
     elif mssg.content.startswith('-show'):
         download(URL_TO)
@@ -100,12 +100,11 @@ async def on_message(mssg):
 
 
     elif mssg.content.startswith('-last'):
-        await mssg.channel.send(header_get)
+        await mssg.channel.send("Schedule last updated in: " + header_get)
     
 
     else:
-        return
+        return "Error occured"
 
 load_dotenv()
 client.run(os.getenv("DISCORD_TOKEN"))
-        
