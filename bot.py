@@ -79,7 +79,7 @@ async def run_daily_verify():
 
     if status_page == True:
         if check_if_updated == True:
-            print("Update occured at:" + header_get)
+            print("Update occured on:" + header_get)
             download(URL_TO)
             
             #discord.Object(id='897232495244881961')
@@ -118,7 +118,7 @@ async def on_message(mssg):
 
 
     elif mssg.content.startswith('-last'):
-        await mssg.channel.send("Schedule last updated at: " + header_get)
+        await mssg.channel.send("Schedule last updated on: " + header_get)
     
     else:
         return "Error occured"
