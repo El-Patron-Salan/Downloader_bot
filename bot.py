@@ -1,4 +1,3 @@
-from logging import exception
 import discord
 from discord.ext import commands, tasks
 
@@ -6,6 +5,7 @@ import os
 import urllib.request, urllib.parse
 from dotenv import load_dotenv
 from datetime import date, datetime
+from pdf2image import convert_from_path
 
 #Init
 client = discord.Client()
@@ -19,7 +19,10 @@ today_date = current_date.strftime("%d-%m-%Y")
 
 URL_TO = "http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf"
 file_name = "Schedule_" + today_date + ".pdf"
+f_img_path = "Schedule0.jpg"
+s_img_path = "Schedule1.jpg"
 path = file_name
+
 
 
 #Check if website is online
@@ -29,6 +32,7 @@ def check_status(url):
     else:
         return False
 
+
 #Check last modified date from HTML header
 def last_modified(url, status):
     if status == True:
@@ -37,6 +41,7 @@ def last_modified(url, status):
     else:
         return "error 404"
 
+
 #Check if header has been updated based on current date
 def verify(response_page):
     if today_date_header in response_page:
@@ -44,11 +49,20 @@ def verify(response_page):
     else:
         return False
 
+
 def download(url):
     response = urllib.request.urlopen(url)    
     file = open("Schedule_" + today_date + ".pdf", 'wb')
     file.write(response.read())
     file.close()
+
+
+def convert(pdf_path):
+    images = convert_from_path(pdf_path)
+ 
+    for i in range(len(images)):
+        images[i].save('Schedule'+ str(i) +'.jpg', 'JPEG')
+
 
 async def remove_file(given_path):
     os.remove(given_path)
@@ -59,13 +73,16 @@ header_get = last_modified(URL_TO, status_page)
 check_if_updated = verify(header_get)
 
 
-
 #Login
 @client.event
 async def on_ready():
     print('Logged in as {0.user}!'.format(client))
 
-
+# schedules = [
+#     discord.File(f_img_path),
+#     discord.File(s_img_path),
+#     discord.File(path)
+# ]
 
 #Task that will at least run once every day
 @tasks.loop(hours=8)
@@ -81,11 +98,18 @@ async def run_daily_verify():
     if status_page == True and check_if_updated == True:
         print("Update occurred on:" + header_get)
         download(URL_TO)
-        
+        convert(path)
+        schedules = [
+            discord.File(f_img_path),
+            discord.File(s_img_path),
+            discord.File(path)
+        ]
         try:
             channel = client.get_channel(897232495244881961) #Schedule channel
-            await channel.send(file=discord.File(path))
+            await channel.send(files=schedules)
             await remove_file(path)
+            await remove_file(f_img_path)
+            await remove_file(s_img_path)
         except Exception as e:
             print(f"Error occured: {e}")
         
@@ -113,8 +137,17 @@ async def on_message(mssg):
 
     elif mssg.content.startswith('-show'):
         download(URL_TO)
-        await mssg.channel.send(file=discord.File(path))
+        convert(path)
+
+        schedules = [
+            discord.File(f_img_path),
+            discord.File(s_img_path),
+            discord.File(path)
+        ]
+        await mssg.channel.send(files=schedules)
         await remove_file(path)
+        await remove_file(f_img_path)
+        await remove_file(s_img_path)
 
 
     elif mssg.content.startswith('-last'):
