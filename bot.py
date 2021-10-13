@@ -4,7 +4,7 @@ from discord.ext import commands, tasks
 import os
 import urllib.request, urllib.parse
 from dotenv import load_dotenv
-from datetime import date
+from datetime import date, datetime
 
 #Init
 client = discord.Client()
@@ -17,7 +17,6 @@ today_date_header = current_date.strftime("%d %b %Y") #header syntax
 today_date = current_date.strftime("%d-%m-%Y")
 
 URL_TO = "http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf"
-channel_id = client.get_channel(897232495244881961) #Schedule channel
 file_name = "Schedule_" + today_date + ".pdf"
 path = file_name
 
@@ -34,8 +33,9 @@ def last_modified(url, status):
     if status == True:
         response = urllib.request.urlopen(url)
         return response.headers['Last-Modified']
+        #return "13 Oct 2021"
     else:
-        return "Could not find page"
+        return "error 404"
 
 #Check if header has been updated based on current date
 def verify(response_page):
@@ -59,29 +59,48 @@ header_get = last_modified(URL_TO, status_page)
 check_if_updated = verify(header_get)
 
 
-#Task that will at least once run every day
-@tasks.loop(hours=12)
-async def run_daily_verify():
-    if check_if_updated == True:
-        download(URL_TO)
-        try:
-            await channel_id.send(file=discord.File(path))
-            await remove_file(path)
-        except Exception as e:
-            print("Error occured: " + e)
-    else:
-        print("No update")
-   
+
 #Login
 @client.event
 async def on_ready():
-    print('Logged on as {0}!'.format(client))
+    print('Logged on as {0.user}!'.format(client))
+
+
+#Task that will at least once run every day
+@tasks.loop(seconds=10)
+async def run_daily_verify():
+
+    current_time = datetime.now()
+    today_time = current_time.strftime("%d/%m/%Y %H:%M:%S")
+
+    status_page = check_status(URL_TO)
+    header_get = last_modified(URL_TO, status_page)
+    check_if_updated = verify("13 Oct 2021 12:12:22 GMT")
+
+    if status_page == True:
+        if check_if_updated == True:
+            print("Update occured in:" + header_get)
+            download(URL_TO)
+            
+            #discord.Object(id='897232495244881961')
+
+            #channel = client.get_channel(897232495244881961) #Schedule channel
+            # await channel.send(file=discord.File(path))
+            # await remove_file(path)
+            channel = client.get_channel(897232495244881961)
+            await channel.send("Hi")
+            
+        else:
+            print("No update: " + today_time)
+    else:
+        print("Could not find specified page")
+
 
 #Execute command
 @client.event
 async def on_message(mssg):
     
-    run_daily_verify.start()
+    await mssg.change_presence(activity=discord.Game(name='-help for help'))
 
     if mssg.content.startswith('-check'): #manual verification
         if check_if_updated == True:
@@ -104,6 +123,7 @@ async def on_message(mssg):
     else:
         return "Error occured"
 
+run_daily_verify.start()
 
 load_dotenv()
 
