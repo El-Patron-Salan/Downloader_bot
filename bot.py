@@ -1,3 +1,4 @@
+from logging import exception
 import discord
 from discord.ext import commands, tasks
 
@@ -33,7 +34,6 @@ def last_modified(url, status):
     if status == True:
         response = urllib.request.urlopen(url)
         return response.headers['Last-Modified']
-        #return "13 Oct 2021"
     else:
         return "error 404"
 
@@ -66,8 +66,9 @@ async def on_ready():
     print('Logged in as {0.user}!'.format(client))
 
 
-#Task that will at least once run every day
-@tasks.loop(seconds=10)
+
+#Task that will at least run once every day
+@tasks.loop(hours=12)
 async def run_daily_verify():
 
     current_time = datetime.now()
@@ -75,23 +76,22 @@ async def run_daily_verify():
 
     status_page = check_status(URL_TO)
     header_get = last_modified(URL_TO, status_page)
-    check_if_updated = verify("13 Oct 2021 12:12:22 GMT")
+    check_if_updated = verify(header_get)
 
-    if status_page == True:
-        if check_if_updated == True:
-            print("Update occured on:" + header_get)
-            download(URL_TO)
-            
-            #discord.Object(id='897232495244881961')
-
-            #channel = client.get_channel(897232495244881961) #Schedule channel
-            # await channel.send(file=discord.File(path))
-            # await remove_file(path)
-            channel = client.get_channel(897232495244881961)
-            await channel.send("Hi")
-            
-        else:
-            print("No update: " + today_time)
+    if status_page == True and check_if_updated == True:
+        print("Update occured on:" + header_get)
+        download(URL_TO)
+        
+        try:
+            channel = client.get_channel(897232495244881961) #Schedule channel
+            await channel.send(file=discord.File(path))
+            await remove_file(path)
+        except Exception as e:
+            print(f"Error occured: {e}")
+        
+    elif check_if_updated != True:
+        print("No update: " + today_time)
+    
     else:
         print("Could not find specified page")
 
@@ -100,7 +100,7 @@ async def run_daily_verify():
 @client.event
 async def on_message(mssg):
     
-    await mssg.change_presence(activity=discord.Game(name='-help for help'))
+    #await mssg.change_presence(activity=discord.Game(name='-help for help'))
 
     if mssg.content.startswith('-check'): #manual verification
         if check_if_updated == True:
