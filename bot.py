@@ -9,7 +9,7 @@ from datetime import date, datetime
 
 #Init
 client = discord.Client()
-bot_args = commands.Bot(command_prefix='-')
+bot = commands.Bot(command_prefix='-')
 
 
 #Store current date in variable
@@ -68,7 +68,7 @@ async def on_ready():
 
 
 #Task that will at least run once every day
-@tasks.loop(hours=12)
+@tasks.loop(hours=8)
 async def run_daily_verify():
 
     current_time = datetime.now()
@@ -79,7 +79,7 @@ async def run_daily_verify():
     check_if_updated = verify(header_get)
 
     if status_page == True and check_if_updated == True:
-        print("Update occured on:" + header_get)
+        print("Update occurred on:" + header_get)
         download(URL_TO)
         
         try:
@@ -100,7 +100,7 @@ async def run_daily_verify():
 @client.event
 async def on_message(mssg):
     
-    #await mssg.change_presence(activity=discord.Game(name='-help for help'))
+    #await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="Hentai"))
 
     if mssg.content.startswith('-check'): #manual verification
         if check_if_updated == True:
