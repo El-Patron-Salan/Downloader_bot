@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import os
 import urllib.request, urllib.parse
@@ -20,6 +20,9 @@ file_name = "Schedule_" + today_date + ".pdf"
 path = file_name
 
 
+
+client = discord.Client()
+bot_args = commands.Bot(command_prefix='-')
 
 #Check if website is online
 def check_status(url):
@@ -57,6 +60,8 @@ status_page = check_status(URL_TO)
 header_get = last_modified(URL_TO, status_page)
 check_if_updated = verify(header_get)
 
+
+@tasks.loop(hours=12)
 
 #Login
 @client.event
