@@ -63,7 +63,7 @@ check_if_updated = verify(header_get)
 #Login
 @client.event
 async def on_ready():
-    print('Logged on as {0.user}!'.format(client))
+    print('Logged in as {0.user}!'.format(client))
 
 
 #Task that will at least once run every day
@@ -79,7 +79,7 @@ async def run_daily_verify():
 
     if status_page == True:
         if check_if_updated == True:
-            print("Update occured in:" + header_get)
+            print("Update occured on:" + header_get)
             download(URL_TO)
             
             #discord.Object(id='897232495244881961')
@@ -118,7 +118,7 @@ async def on_message(mssg):
 
 
     elif mssg.content.startswith('-last'):
-        await mssg.channel.send("Schedule last updated in: " + header_get)
+        await mssg.channel.send("Schedule last updated on: " + header_get)
     
     else:
         return "Error occured"
