@@ -18,7 +18,7 @@ today_date_header = current_date.strftime("%d %b %Y") #header syntax
 today_date = current_date.strftime("%d-%m-%Y")
 
 URL_TO = "http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf"
-file_name = "Schedule_" + today_date + ".pdf"
+file_name = "Schedule_" + current_date.strftime("%d-%m-%Y") + ".pdf"
 f_img_path = "Schedule0.jpg"
 s_img_path = "Schedule1.jpg"
 path = file_name
@@ -44,7 +44,7 @@ def last_modified(url, status):
 
 #Check if header has been updated based on current date
 def verify(response_page):
-    if today_date_header in response_page:
+    if current_date.strftime("%d %b %Y") in response_page:
         return True
     else:
         return False
@@ -152,6 +152,9 @@ async def on_message(mssg):
 
     elif mssg.content.startswith('-last'):
         await mssg.channel.send("Schedule last updated on: " + header_get)
+    
+    elif mssg.content.startswith("-date"):
+        await mssg.channel.send(today_date)
     
     else:
         return "Error occured"
