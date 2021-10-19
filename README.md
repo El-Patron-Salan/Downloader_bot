@@ -1,0 +1,1 @@
+![](https://github.com/El-Patron-Salan/Downloader_bot/actions/workflows/doccomp.yml/badge.svg)

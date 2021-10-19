@@ -1,0 +1,10 @@
+version: "3"
+services:
+  uwu:
+    build:
+      args:
+        VERSION: latest
+      context: .
+      dockerfile: ./docker/python/dockerfile
+    volumes: 
+      - .:/app
