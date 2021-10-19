@@ -1,0 +1,23 @@
+name: Docker-Compose Build
+
+on:
+  push:
+    branches: [ Dockeroni ]
+  pull_request:
+    branches: [ Dockeroni ]
+
+  workflow_dispatch:
+
+jobs:
+  Docker-Compose:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+      - uses: actions/checkout@v2
+        #Compose up
+      - name: Compose up
+        run: docker-compose -f "docker-compose.yml" up -d --build
+
+      - name: Compose down
+        run: docker-compose -f "docker-compose.yml" down
