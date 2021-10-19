@@ -2,9 +2,9 @@ name: Docker-Compose Build
 
 on:
   push:
-    branches: [ Dockeroni ]
+    branches: [ master ]
   pull_request:
-    branches: [ Dockeroni ]
+    branches: [ master ]
 
   workflow_dispatch:
 
