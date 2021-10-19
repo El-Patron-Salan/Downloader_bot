@@ -10,6 +10,7 @@ on:
 
 jobs:
   Docker-Compose:
+    timeout-minutes: 3
     runs-on: ubuntu-latest
 
     steps:
