@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout Repo
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
         #Compose up
       - name: Compose up
-      - run: docker-compose -f "docker-compose.yml" up -d --build
+        run: docker-compose -f "docker-compose.yml" up -d --build
 
       - name: Compose down
-      - run: docker-compose -f "docker-compose.yml" down
+        run: docker-compose -f "docker-compose.yml" down
