@@ -1,6 +1,6 @@
 TO-DO:
   1. Make it object oriented
   2. Optimize 
-  3. Add Dockerfile
+  //3. Add Dockerfile
   4. Add commands with arguments
   5. Add uptime of bot
