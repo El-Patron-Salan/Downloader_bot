@@ -1,166 +1,74 @@
 import discord
+
 from discord.ext import commands, tasks
 
-import os
-import urllib.request, urllib.parse
-from dotenv import load_dotenv
+
+from cogs import (
+    web,
+    convert_pdf,
+    ErrorHandler
+)
+
 from datetime import date, datetime
-from pdf2image import convert_from_path
-
-#Init
-client = discord.Client()
-bot = commands.Bot(command_prefix='-')
+from dotenv import load_dotenv
+import os
 
 
-#Store current date in variable
-current_date = date.today()
-today_date_header = current_date.strftime("%d %b %Y") #header syntax
-today_date = current_date.strftime("%d-%m-%Y")
+class Bot(commands.Bot):
 
-URL_TO = "http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf"
-file_name = "Schedule_" + current_date.strftime("%d-%m-%Y") + ".pdf"
-f_img_path = "Schedule0.jpg"
-s_img_path = "Schedule1.jpg"
-path = file_name
+    def __init__(self, prefix="-"):
+        super(Bot, self).__init__(command_prefix=prefix, intents=discord.Intents.all())
+    
+
+    async def on_ready(self):
+        print(f'Logged in as {self.user.name}')
 
 
+    @tasks.loop(hours=8)
+    async def continuously_check_for_update():
+        current_time = datetime.now()
+        time_format = "%d/%m/%Y %H:%M:%S"
+        ###
+        today_date = date.today()
+        date_format = "%d-%m-%Y"
 
-#Check if website is online
-def check_status(url):
-    if urllib.request.urlopen(url).getcode() == 200:
-        return True
-    else:
-        return False
+        path_to = f"Schedule_{today_date.strftime(date_format)}.pdf"
+        channel_id = 897232495244881961
 
+        if web.WebStatus.check_if_updated() is True:
+            web.WebStatus.download(path_to)
+            convert_pdf(path_to)
 
-#Check last modified date from HTML header
-def last_modified(url, status):
-    if status == True:
-        response = urllib.request.urlopen(url)
-        return response.headers['Last-Modified']
-    else:
-        return "error 404"
+            # Array of files
+            schedule_files = [
+                discord.File('Schedule_0.jpg'),
+                discord.File('Schedule_1.jpg'),
+                discord.File(path_to)
+            ]
 
-
-#Check if header has been updated based on current date
-def verify(response_page):
-    if current_date.strftime("%d %b %Y") in response_page:
-        return True
-    else:
-        return False
-
-
-def download(url):
-    response = urllib.request.urlopen(url)    
-    file = open("Schedule_" + today_date + ".pdf", 'wb')
-    file.write(response.read())
-    file.close()
-
-
-def convert(pdf_path):
-    images = convert_from_path(pdf_path)
- 
-    for i in range(len(images)):
-        images[i].save('Schedule'+ str(i) +'.jpg', 'JPEG')
-
-
-async def remove_file(given_path):
-    os.remove(given_path)
-
-
-status_page = check_status(URL_TO)
-header_get = last_modified(URL_TO, status_page)
-check_if_updated = verify(header_get)
-
-
-#Login
-@client.event
-async def on_ready():
-    print('Logged in as {0.user}!'.format(client))
-
-# schedules = [
-#     discord.File(f_img_path),
-#     discord.File(s_img_path),
-#     discord.File(path)
-# ]
-
-#Task that will at least run once every day
-@tasks.loop(hours=8)
-async def run_daily_verify():
-
-    current_time = datetime.now()
-    today_time = current_time.strftime("%d/%m/%Y %H:%M:%S")
-
-    status_page = check_status(URL_TO)
-    header_get = last_modified(URL_TO, status_page)
-    check_if_updated = verify(header_get)
-
-    if status_page == True and check_if_updated == True:
-        print("Update occurred on:" + header_get)
-        download(URL_TO)
-        convert(path)
-        schedules = [
-            discord.File(f_img_path),
-            discord.File(s_img_path),
-            discord.File(path)
-        ]
-        try:
-            channel = client.get_channel(897232495244881961) #Schedule channel
-            await channel.send(files=schedules)
-            await remove_file(path)
-            await remove_file(f_img_path)
-            await remove_file(s_img_path)
-        except Exception as e:
-            print(f"Error occured: {e}")
+            try:
+                channel = bot.get_channel(channel_id)
+                await channel.send(files=schedule_files)
+                await web.WebStatus.remove_file
+            except Exception as e:
+                print(f"continuously_check_for_update() - Error occurred: {e}")
         
-    elif check_if_updated != True:
-        print("No update: " + today_time)
-    
-    else:
-        print("Could not find specified page")
-
-
-#Execute command
-@client.event
-async def on_message(mssg):
-    
-    #await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="Hentai"))
-
-    if mssg.content.startswith('-check'): #manual verification
-        if check_if_updated == True:
-            download(URL_TO)
-            await mssg.channel.send(file=discord.File(path))
-            await remove_file(path)
         else:
-            await mssg.channel.send("No updates")
+            print(f"No update: {current_time.strftime(time_format)}")
+
     
-
-    elif mssg.content.startswith('-show'):
-        download(URL_TO)
-        convert(path)
-
-        schedules = [
-            discord.File(f_img_path),
-            discord.File(s_img_path),
-            discord.File(path)
-        ]
-        await mssg.channel.send(files=schedules)
-        await remove_file(path)
-        await remove_file(f_img_path)
-        await remove_file(s_img_path)
+    async def on_message(self, message):
+        if message.author == self.user:
+            return
+        
+        if message.content == '-check':
+            await message.channel.send(web.WebStatus.last_modified())
 
 
-    elif mssg.content.startswith('-last'):
-        await mssg.channel.send("Schedule last updated on: " + header_get)
-    
-    elif mssg.content.startswith("-date"):
-        await mssg.channel.send(today_date)
-    
-    else:
-        return "Error occured"
+    continuously_check_for_update.start()
 
-run_daily_verify.start()
 
-load_dotenv()
-
-client.run(os.getenv("DISCORD_TOKEN"))
+if __name__ == '__main__':
+     bot = Bot()
+     load_dotenv()
+     bot.run(os.getenv("DISCORD_TOKEN"))
