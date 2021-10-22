@@ -1,13 +1,11 @@
 import discord
-
-from discord.ext import commands, tasks
 import logging
 
-from cogs import (
-    web,
-    convert_pdf,
-    cmd_error_handler
-)
+from discord.ext import commands, tasks
+
+from cogs.web               import WebStatus
+from cogs.convert_pdf       import Convert
+from cogs.cmd_error_handler import ErrorHandler
 
 from datetime   import date, datetime
 from dotenv     import load_dotenv
@@ -23,65 +21,63 @@ logger.addHandler(handler)
 
 # -----------------------------------------------------------------------------------------
 
-class Bot(commands.Bot):
+intents = discord.Intents.all()
+prefix='-'
 
-    def __init__(self, prefix='-'):
-        super(Bot, self).__init__(command_prefix=prefix, intents=discord.Intents.all())
+bot = commands.Bot(
+    command_prefix=prefix,
+    intents=intents
+)
 
+@bot.event
+async def on_ready():
+    print(f'Logged in as {bot.user.name}')   
 
-    async def on_ready(self):
-        print(f'Logged in as {self.user.name}')   
+@tasks.loop(hours=8)
+async def continuously_check_for_update():
+    current_time = datetime.now()
+    time_format = "%d/%m/%Y %H:%M:%S"
+    ###
+    today_date = date.today()
+    date_format = "%d-%m-%Y"
 
-    @tasks.loop(hours=8)
-    async def continuously_check_for_update():
-        current_time = datetime.now()
-        time_format = "%d/%m/%Y %H:%M:%S"
-        ###
-        today_date = date.today()
-        date_format = "%d-%m-%Y"
+    path_to = f"Schedule_{today_date.strftime(date_format)}.pdf"
+    channel_id = 897232495244881961
 
-        path_to = f"Schedule_{today_date.strftime(date_format)}.pdf"
-        channel_id = 897232495244881961
+    if WebStatus.check_if_updated() is True:
+        WebStatus.download(path_to)
+        Convert.conversion_to_jpg(path_to)
 
-        if web.WebStatus.check_if_updated() is True:
-            web.WebStatus.download(path_to)
-            convert_pdf.Convert.conversion_to_jpg(path_to)
+        # Array of files
+        schedule_files = [
+            discord.File('Schedule_0.jpg'),
+            discord.File('Schedule_1.jpg'),
+            discord.File(path_to)
+        ]
 
-            # Array of files
-            schedule_files = [
-                discord.File('Schedule_0.jpg'),
-                discord.File('Schedule_1.jpg'),
-                discord.File(path_to)
-            ]
-
-            try:
-                channel = bot.get_channel(channel_id)
-                await channel.send(files=schedule_files)
-                await channel.send(f"Modified at: ***{web.WebStatus.last_modified()}***")
-                await web.WebStatus.remove_file()
-            except Exception as e:
-                print(f"continuously_check_for_update() - Error occurred: {e}")
-        
-        else:
-            print(f"No update: {current_time.strftime(time_format)}")
-
-    bot.add_cog(cmd_error_handler.ErrorHandler(bot))
-
-    @bot.command()
-    async def ping(ctx):
-	    await ctx.channel.send("pong")
-
+        try:
+            channel = bot.get_channel(channel_id)
+            await channel.send(files=schedule_files)
+            await channel.send(f"Modified at: ***{WebStatus.last_modified()}***")
+            await WebStatus.remove_file()
+        except Exception as e:
+            print(f"continuously_check_for_update() - Error occurred: {e}")
     
-    @bot.command(name='last')
-    async def check(ctx):
-        await ctx.send(web.WebStatus.last_modified())
-        
+    else:
+        print(f"No update: {current_time.strftime(time_format)}")
 
-    continuously_check_for_update.start()
+bot.add_cog(ErrorHandler(bot))
+
+@bot.command()
+async def ping(ctx):
+    await ctx.channel.send("pong")
 
 
-if __name__ == '__main__':
-    bot = Bot()
-     
-    load_dotenv()
-    bot.run(os.getenv("DISCORD_TOKEN"))
+@bot.command(name='last')
+async def check(ctx):
+    await ctx.send(WebStatus.last_modified())
+
+continuously_check_for_update.start()
+
+load_dotenv()
+bot.run(os.getenv("DISCORD_TOKEN"))

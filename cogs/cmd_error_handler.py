@@ -11,17 +11,19 @@ class ErrorHandler(commands.Cog):
 
         if hasattr(ctx.command, "on_error"):
             return 
+
         error = getattr(error, "original", error)
 
+        if isinstance(error, commands.CommandError):
+            await ctx.send(f'Beep Beep! There is a problem with __**{ctx.message.content}**__')
+
         if isinstance(error, commands.CommandNotFound):
-            await ctx.send('Beep Beep! Command not found ¯\_(ツ)_/¯ ')
+            return await ctx.send(
+                f'\t↓↓ Command error ↓↓ ```fix\n{str(error)} ¯\_(ツ)_/¯\n```')
 
         if isinstance(error, commands.UserInputError):
             await ctx.send('Beep Beep! Your input is wrong ¯\_(ツ)_/¯ ')
 
-        if isinstance(error, commands.CommandError):
-            return await ctx.send(f'Command error **{ctx.command.name}** -> {str(error)}')
-            
         else:
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
