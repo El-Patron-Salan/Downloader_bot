@@ -2,7 +2,7 @@
 !README.md
 !.github
 !requirements.txt
-.env
 !docker*
 !cogs
-!startup
+.env
+discord.log
