@@ -1,12 +1,16 @@
+import io
+import os
+import urllib.parse
+from datetime import date
+from urllib.request import urlopen
+
 from discord.ext import commands
 
-import urllib.request, urllib.parse
-from datetime import date
-import os
 
 class WebStatus(commands.Cog):
 
     URL_TO = 'http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf'
+    mem_file = io.BytesIO
 
     def __init__(self,bot):
         self.bot = bot
@@ -27,12 +31,12 @@ class WebStatus(commands.Cog):
         return True if current_date.strftime(header_date_syntax) in WebStatus.last_modified() else False
     
     # Download pdf
-    def download(path):
+    def download():
         try:
-            open_page = urllib.request.urlopen(WebStatus.URL_TO)
-            file = open(path, 'wb')
-            file.write(open_page.read())
-            file.close()
+            response = urlopen(WebStatus.URL_TO)
+            WebStatus.mem_file.write(response.read())
+            WebStatus.mem_file.seek(0, os.SEEK_END)
+            return WebStatus.mem_file
         except Exception as e:
             print(f"Error occurred: {e}")
     
@@ -40,11 +44,7 @@ class WebStatus(commands.Cog):
     async def remove_file():
         pwd = os.getcwd()
         try:
-
-            for item in pwd:
-                if item.endswith('.pdf') or item.endswith('.jpg'):
-                    os.remove(os.path.join(pwd, item))
-
+            WebStatus.mem_file.close()
         except Exception as e:
             print(f"Error occurred: {e}")
            

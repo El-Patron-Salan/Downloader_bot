@@ -45,14 +45,14 @@ async def continuously_check_for_update():
     channel_id = 897232495244881961
 
     if WebStatus.check_if_updated() is True:
-        WebStatus.download(path_to)
-        Convert.conversion_to_jpg(path_to)
+        mem_file = WebStatus.download()
+        Convert.conversion_to_jpg(mem_file)
 
         # Array of files
         schedule_files = [
             discord.File('Schedule_0.jpg'),
             discord.File('Schedule_1.jpg'),
-            discord.File(path_to)
+            discord.File(mem_file)
         ]
 
         try:
