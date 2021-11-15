@@ -77,6 +77,37 @@ async def ping(ctx):
 async def check(ctx):
     await ctx.send(WebStatus.last_modified())
 
+@bot.command(name='check')
+async def show(ctx):
+    current_time = datetime.now()
+    time_format = "%d/%m/%Y %H:%M:%S"
+    ###
+    today_date = date.today()
+    date_format = "%d-%m-%Y"
+
+    path_to = f"Schedule_{today_date.strftime(date_format)}.pdf"
+    channel_id = 897232495244881961
+
+
+    mem_file = WebStatus.download()
+    await ctx.channel.send(file=discord.File(mem_file))
+    Convert.conversion_to_jpg(mem_file)
+    # Array of files
+    schedule_files = [
+        discord.File('Schedule_0.jpg'),
+        discord.File('Schedule_1.jpg'),
+        discord.File(mem_file)
+    ]
+
+    try:
+        #channel = bot.get_channel(channel_id)
+        await ctx.channel.send(files=schedule_files)
+        await ctx.channel.send(f"Modified at: ***{WebStatus.last_modified()}***")
+        await WebStatus.remove_file()
+    except Exception as e:
+        print(f"continuously_check_for_update() - Error occurred: {e}")
+    
+
 continuously_check_for_update.start()
 
 load_dotenv()

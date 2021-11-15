@@ -1,6 +1,7 @@
 import io
 import os
 import urllib.parse
+import requests
 from datetime import date
 from urllib.request import urlopen
 
@@ -10,7 +11,7 @@ from discord.ext import commands
 class WebStatus(commands.Cog):
 
     URL_TO = 'http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf'
-    mem_file = io.BytesIO
+    #mem_file = io.BytesIO
 
     def __init__(self,bot):
         self.bot = bot
@@ -33,10 +34,10 @@ class WebStatus(commands.Cog):
     # Download pdf
     def download():
         try:
-            response = urlopen(WebStatus.URL_TO)
-            WebStatus.mem_file.write(response.read())
-            WebStatus.mem_file.seek(0, os.SEEK_END)
-            return WebStatus.mem_file
+            response = requests.get(WebStatus.URL_TO)
+            my_mem = io.BytesIO.write(response.content)
+            my_mem.seek(0, os.SEEK_END)
+            return my_mem
         except Exception as e:
             print(f"Error occurred: {e}")
     
@@ -44,7 +45,9 @@ class WebStatus(commands.Cog):
     async def remove_file():
         pwd = os.getcwd()
         try:
-            WebStatus.mem_file.close()
+            for item in pwd:
+                if item.endswith('.jpg'):
+                    os.remove(os.path.join(pwd, item))
         except Exception as e:
             print(f"Error occurred: {e}")
            
