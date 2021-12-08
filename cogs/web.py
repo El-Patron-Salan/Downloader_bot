@@ -6,7 +6,7 @@ import os
 
 class WebStatus(commands.Cog):
 
-    URL_TO = 'http://wt.ajp.edu.pl/images/Plany/II_rok_E-MiBM-I-AiR.pdf'
+    URL_TO = 'http://wt.ajp.edu.pl/images/Plany/II_rok_E-I-AiR.pdf'
 
     def __init__(self,bot):
         self.bot = bot
